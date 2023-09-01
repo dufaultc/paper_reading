@@ -8,6 +8,8 @@ This paper was released in July 2022 as part of the *2022 ICML Workshop on Compu
 
 ## Notes
 
+### Paper
+
 #### Abstract
 
 - GWAS are limited by their reliance on simple models of genetic effects
@@ -20,7 +22,7 @@ This paper was released in July 2022 as part of the *2022 ICML Workshop on Compu
 #### 1. Introduction
 
 - Most GWAS assume the effect of each SNV on the phenotype are independent, meaning they are unable to model epistasis
-- Most GWAS use additive model, meaning they do not account for dominance effects
+- Most GWAS use an additive model, meaning they do not account for dominance effects
 - They present a Transformer-based architecture for GWAS data
     - Uses a SNV encoder which can model gene interactions
     - Can also model complex multidimensional phenotypes
@@ -31,16 +33,46 @@ This paper was released in July 2022 as part of the *2022 ICML Workshop on Compu
 
 #### 2. Methodology
 
+##### Data
+
 - SNV data for ~487000 individuals from UK Biobank
     - ~870000 SNVs measured for each, 90 million imputed
-- Data preprocessing:
-    
+- Data preprocessing
     1. Get sequence of SNVs for each person, along with their genome position 
     2. Build a map from each SNV to an integer
     3. Apply this map, end up with sequence of integers for each SNV sequence
-    
+
+- Each SNV has two components: Its position on the genome and its alleles
+    - They use a method for representing which alleles are present which requires only 32 tokens to represent all possible allele combinations. Thus every SNV can be tokenized to an integer from 0 to 31.
+        - They do this by representing long sequences as one character, refer to the paper to see what this means
+- A subset of SNVs is used for the gout classification task
+    - Only use non-imputed SNVs from the genotypes data which have a minimum allele frequency of $10^{-4}$
+    - They also exclude SNV values which score below $10^{-6}$ with the Hardy-Weinberg equilibrium exact test
+        - The HWE exact test is used to determine which SNVs may be different from their expected frequency due to population structure, and not because of natural genetic variation. 
+    - Of the remaining SNVs plink1.9 is used to find those associated with urate using linear regression (p-value $10^{-1}$). This is because gout is primarily caused by high serum urate levels.
+    - End up with around 66000 SNVs to feed to the model
+- They also provide the model with the age, sex, and BMI of all individuals
+- The dataset for training and evaluation of the model had approximately 9000 gout and 9000 non-gout samples. 70% are in training set, 25% in test set, 5% held out.
+
+##### Transformer Network Architecture
+- Each SNV is mapped to one of the 32 tokens and one-hot encoded. This embedding is then concatenated to a sine/cosine positional encoding of length 64. This makes the input embedding vector 96 elements in size for each token. Since there are 66000 SNVs this makes the input length very long.
+- This input embedding is then passed into a Transformer encoder
+    - Self-attention is performed using the Linformer architecture. This is necessary because of the very long input length.
+    - 6 layers, 4 attention heads per layer
+- The first token of the encoder's output is used as the classification token, whose output is passed to a fully connected linear layer used for classification using Softmax.
+
 
 #### 3. Results
+- When the model is confident with its prediction, it tends to be more likely to be accurate. ~80% accuracy when Softmax output is <0.1 or >0.9.
+- Model achieves an AUROC score of 0.83
 
 #### 4. Discussion and Work in Progress
+- This naive approach still achieves accuracy similar to top methods (0.84)
+- There are different methods for incorporating long term dependencies which might be better than Linformer, they mention Memorizing Transformers and Perceiver IO
+- They want to use attention visualization to determine which SNVs are important for gout prediction
+- They want to incorporate pretraining into their system and use data from the entire UK BioBank
+
+--- 
+### [ICML 2022 Workshop Presentation Video](https://icml.cc/virtual/2022/workshop/13464#wse-detail-20833)
+
 
