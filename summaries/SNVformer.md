@@ -75,4 +75,10 @@ This paper was released in July 2022 as part of the *2022 ICML Workshop on Compu
 --- 
 ### [ICML 2022 Workshop Presentation Video](https://icml.cc/virtual/2022/workshop/13464#wse-detail-20833)
 
-
+- 45-73% of gout risk should be heritable/explainable from ones genetics
+    - But using linear models like in GWAS, only 7-41% is explained
+- Want to use a transformer because can show relation between SNV of arbitrary distance from one another, and because it encodes position of each SNV on the genome
+- They used only ~66000 SNVs instead of full ~800000 which were measured because even using Linformer their sequence is too long to fit in memory
+- Without providing model with age, sex, and BMI they have prediction accuracy of 59% (0.63 ROC, SOA is also 0.63)
+    - When they are provided prediction accuracy is 75% (0.83 AUROC, SOA is same)
+- In the video he says they did pretraining, but in paper not mentioned.
