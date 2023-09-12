@@ -48,20 +48,48 @@ You need a lot of transcriptomic data to learn the connections between genes, wh
   - They verified that the gene embeddings are indeed dependent on the rankings of other genes in the given cell. They found that highly context-dependent genes have more variability in their gene expression between different cells than housekeeping genes.
 - They combined gene embeddings from the pretrained model to generate cell embeddings, and verified that they clustered by cell type and phenotype, not by patient.
   - Even after the model was finetuned using only data from one sequencing platform, cell embeddings (including for cells from other platforms) still clustered primarily by cell type. The embeddings were better integrated than the orginal data, even after batch effect removal tools were applied to it.
-  - These cell embeddings were used to assess Geneformer's usefulness for cell-type annotation tasks. They found that Geneformer performed better than alternative methods in different tissues.
-
+  - These cell embeddings were used to assess Geneformer's usefulness for cell-type prediction tasks. They found that Geneformer performed better than alternative methods, especially as the number of classes to select between increased. 
 
 #### Gene Dosage Sensitivity Predictions
 
+- They finetuned Geneformer to predict which transcription factors are dosage sensitive, with results significantly better than alternative methods.
+  - This finetuned model successfully identified genes known with high or medium confidence from a previous study to be associated with neurodevelopmental disease upon their deletion. 96% of the high confidence known genes were identified by the model as dosage sensitive in fetal cerebral cells.
+  - With the medium confidence genes, the model identified them as dosage sensitive at a higher rate in fetal cerebral cells than other cell types. This is good because it is primarily in this cell type we expect these genes to be dosage sensitive.
+- Longer pretraining resulted in better prediction results even when the amount of finetuning data stayed constant.
+- They measured the effect of deleting genes from rankings on the embeddings given by the pretrained model. In cardiomyocytes, deletion of structural heart genes had a significantly larger affect on the embeddings of the remaining genes than other heart disease related genes which affect other cell types.
+
 #### Chromatin Dynamics Predictions
+
+- A finetuned Geneformer was significantly better at predicting if genes were bivalently marked than alternative methods, and the prediction capabilities were generalizable to regions of the genome not used in the finetuning.
+- A finetuned Geneformer could predict which transcription factors are long range versus short range acting, significantly better than alternative methods (their predictions were almost random).
+  - Predicting this just from transcriptomes is really cool!
+  - Fun fact: 0% of genes in the genome code for transcription factors. They are the largest family of human proteins.
 
 #### Network Dynamics Predictions
 
+- After finetuning, Geneformer could identify central genes in the NOTCH1 gene network using only transcriptional data from 30000 cells. Central genes/factors are those whose correction restored the network to normal state state.
+- Finetuning also allowed Geneformer to distinguish downstream targets of the NOTCH1 network from non-targets.
+
 #### Pre-training Encoded Network Hierarchy
+
+- They looked at the attention weights of the pretrained Geneformer model.
+- For aortic endothelial cells, 20% of their 24 attention heads (so I guess 5 of them) significantly attended transcription factors more than other genes. Specific attention heads significantly paid more attention to central regulatory nodes in the Notch1 gene network than peripheral genes.
+  - When applied to a variety of cell types, the central regulatory attention heads significantly attended more to the highest ranked genes of each cell.
+- Early layer attention heads attended to distinct gene ranks from one another, middle layer heads attended broadly, and final layer heads attended to the highest ranked genes that uniquely define cell states.
 
 #### In Silico Gene Network Analysis
 
+- They looked at the genes in fetal cardiomyocyte cells whose gene embeddings (taken from the pretrained Geneformer) were most changed by the removal of a known heart disease gene. Genes whose embeddings were most affected by the deletion of the heart disease gene were those known to be most significantly dysregulated by variations in the heart disease related gene. They say this means you can use *in silico* perturbation of transcriptomes given to the model to understand gene network connections.
+- They found that the sum of the separate effects deleting two TF known to bind together on the embeddings of the downstream cobound targets of the genes, was less than the effect on the embeddings of the targets when both were deleted at the same time. They say this suggests Geneformer understands the two TF bind together to affect the targets.
+
 #### In Silico Treatment Analysis
+
+- Wanted to test if their perturbation strategy from the last section could be used to find candidate therapeutic targets of human disease.
+- They finetuned Geneformer to distinguish cardiomyocyte cells from hearts with a certain disease from those which were non-failing.
+  - They then found which genes when activated or deleted caused the gene emebeddings from non-failing heart cells to move towards those from diseased heart cells. They found close to 1000 genes which did this.
+- They then looked at whether they could *in silico* activate or inhibit gene pathways in the cell gene ranks which would shift the gene embeddings from diseased cells towards the embeddings from the non-failing cells.
+  - I can't tell if this was a success or not. I don't think they say if the pathways they used to identify targets were found using this approach.
+- They experimentally validated that two therapeutic targets predicted by Geneformer improved function of cardiomyocyte cell function. Used CRISPR to knockout two genes and saw what they were looking for.
 
 #### Discussion
 
