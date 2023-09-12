@@ -4,6 +4,8 @@ Nature paper published May 31 2023. Most authors affiliated with the Broad Insti
 
 [Twitter thread from first author](https://twitter.com/TheodorisLab/status/1664284672711593984)
 
+[Nature Research Briefing Article](https://www.nature.com/articles/d41586-023-01504-0.pdf)
+
 [Model](https://huggingface.co/ctheodoris/Geneformer)
 
 [Pretraining Data](https://huggingface.co/datasets/ctheodoris/Genecorpus-30M)
