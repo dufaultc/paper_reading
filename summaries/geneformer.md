@@ -89,13 +89,46 @@ You need a lot of transcriptomic data to learn the connections between genes, wh
   - They then found which genes when activated or deleted caused the gene emebeddings from non-failing heart cells to move towards those from diseased heart cells. They found close to 1000 genes which did this.
 - They then looked at whether they could *in silico* activate or inhibit gene pathways in the cell gene ranks which would shift the gene embeddings from diseased cells towards the embeddings from the non-failing cells.
   - I can't tell if this was a success or not. I don't think they say if the pathways they used to identify targets were found using this approach.
-- They experimentally validated that two therapeutic targets predicted by Geneformer improved function of cardiomyocyte cell function. Used CRISPR to knockout two genes and saw what they were looking for.
+- They experimentally validated that two therapeutic targets predicted by Geneformer improved function of cardiomyocyte cell function. Used CRISPR to knockout the two genes and saw what they were looking for.
 
 #### Discussion
 
+- Using Geneformer to predict dosage-sensitive genes could be useful for understanding which GWAS hits to care about when trying to understand the drivers of complex traits. Would also be useful for understanding which tissues likely to be affected by the given variation.
+- As the amount of publicly available transcriptomic data increases, Geneformer should continue to improve
+
 ### Methods
 
+Im only going to note stuff mentioned in this section they didn't say earlier.
 
+#### Pretraining Corpus Building
+
+ - They filtered out cells with total read counts and percentage of mitochondrial counts outside 3 SD from the mean in the dataset. After this filtering they had 27.4 million cells remaining from the original 29.9 million
+ - When calculating the median expression of a gene for the purposes of normalization, they did not include 0 values. They say the reason for this is to not weight the value by the tissue representation of their dataset, which I don't really understand.
+- They had a vocabulary of 25424 protein-coding or miRNA genes
+
+#### Geneformer Architecture and Pretraining
+
+- Model input size was 2048, which was large enough for 93% of rank value encodings in the corpus. Model embedding size was 256, feed forward layer size of 512.
+- They used pytorch and Huggingface Transformers.
+- To make training more efficient they used the trainer from the Huggingface Transformers library which does a lot of make training more efficient.
+- They performed distributed GPU training using Deepspeed.
+- Training took around 3 days using 3 compute nodes with 4 32GB GPUs each.
+
+#### Geneformer Finetuning
+
+- Finetuning objective were always either gene classification or cell classification
+- They used the same finetuning hyperparameters for all tasks. Since tuning hyperparameters for each task would improve performance of the model, they likely underestimated the performance of Geneformer. Also only used one training epoch when finetuning.
+- For most of the finetuning tasks they froze no layers, except for the dosage sensitivity and long versus short range TF tasks, where they froze 4 layers.
+
+#### Gene Embeddings, Cell Embeddings, and Attention Weights
+
+- Gene embeddings were extracted from the 2nd last layer of the model, as the last layer can have features more related to the pretraining task.
+- Cell embeddings are the average of the embeddings of each gene (from 2nd last layer) in the cell
+
+#### In Silico Perturbation
+
+- They measured the difference between cell and gene embeddings before and after they performed perturbation (which was done by removing a given gene from the cells gene ranking) using cosine similarity.
+- In silico activation was done by moving the given gene to the front of the gene ranking.
 
 
 
